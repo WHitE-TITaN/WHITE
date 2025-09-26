@@ -1,14 +1,18 @@
 #Set the minimum required version of CMake.
-cmake_minimum_required(version 3.10)
+cmake_minimum_required(VERSION 3.10)
 
 #project name
-project(KeepEYE)
+project(WHITE)
 
 
 #Set the C++ standard to C++17. PcapPlusPlus works well with modern C++.
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#Find PcapPlusPlus package Required for packet sniffing and manipulation.
-find_package(PcapPlusPlus REQUIRED)
+#Add include directories
+include_directories(${CMAKE_SOURCE_DIR}/SandBox/headers)
 
+add_executable(
+  WHITE
+  src/WHITE.cpp
+)
