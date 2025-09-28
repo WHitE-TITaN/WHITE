@@ -18,13 +18,13 @@ class sandBox{
 
 
 //to create SandBox
-int createNameSpace(std::string* path){
+int sandBox::createNameSpace(std::string* path){
     return 1;
 }
 
 
 //to execute program in sandBox 
-int runItBoxed(std::string* path){
+int sandBox::runItBoxed(std::string* path){
     //getpid() will featch the process id that is being executed.
     std::cout<<"pid - > "<<getpid();
     std::cout.flush(); //send print buffer to the terminal immidatly as execel will replace the
@@ -44,7 +44,7 @@ int runItBoxed(std::string* path){
 
 
 //sand box with arguments
-int runItBoxed(std::string *path, std::string* args){
+int sandBox::runItBoxed(std::string *path, std::string* args){
     int returns = execl(path->c_str(), path->c_str(), "-c", args->c_str(), NULL);
     if(returns == -1) perror("execl");
     return 1;
