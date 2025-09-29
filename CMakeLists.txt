@@ -16,3 +16,8 @@ add_executable(
   WHITE
   src/WHITE.cpp
 )
+
+add_executable(
+  PreRequisite
+  src/PreRequisite.cpp
+)
