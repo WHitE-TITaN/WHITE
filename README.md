@@ -1,6 +1,7 @@
 # WHITE
 # SNN - Based Malware CLassification using Program Trace
 
+PreRequisite : <b>bpftrace</b>
 
 SETUP WHITE
 ```
