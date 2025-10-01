@@ -51,11 +51,6 @@ class sandBox{
 
             //attach the logger to log all the activity the child do -> bpftrace
             //track the hole system.
-            // int tacker = execl("/bin/bash", "/bin/bash", "-c", 
-            //     "sudo bpftrace -e \"tracepoint:syscalls:sys_enter_openat { "
-            //     "printf(\\\"%s opened %s\\n\\\", comm, str(args->filename)); }\"",
-            //     NULL);
-
             //track specific PID
             std::string trackCMD =  
                 "sudo bpftrace -e \"tracepoint:syscalls:sys_enter_openat /pid == " + std::to_string(child) + "/ { "
