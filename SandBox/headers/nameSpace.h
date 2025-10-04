@@ -16,6 +16,34 @@ class sandBox{
             std::cout.flush(); //send print buffer to the terminal immidatly as execel will replace the
             //current execution flow.
 
+            //Remounting the fileSystem For Process.
+            std::cout<<"remount the root filesystem (/) as a private mount";
+            if(mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) == -1){
+                //MS_REC | MS_PRIVATE means recursively remount / and all its submounts as private, so mount events won’t propagate to other namespaces.
+                perror("mount");
+                return -1;
+            }
+
+            //changes the root directory of the process to "mountMask/root"
+            if(chroot("mountMask/root") == -1){
+                //For chroot to work, the directory must exist and be a valid root environment
+                //so it will require libraries, /proc, etc.
+                perror("chroot");
+                return -1;
+            }
+
+            //change directory to / inside the new root.
+            if(chdir("/") == -1){
+                perror("chdir");
+                return -1;
+            }
+
+            //Mounts the proc filesystem inside the new root at /proc
+            if(mount("proc", "/proc", "proc", 0, NULL) == -1){
+                perror("mount");
+                return -1;
+            }
+
             //convert arg to valid string path as execl required a char* 
             const char * path = static_cast<const char*>(args);
 
@@ -37,7 +65,7 @@ class sandBox{
             //CLONE_NEWPID create a new pi for child and sandbox it so it cant see any other process
             //but a real PID is also attached that is visible to Parent process
             //SIGCHILD = is a flag that let Parent recive signal form child Process.
-            int flag = CLONE_NEWPID | SIGCHLD;
+            int flag = CLONE_NEWPID | SIGCHLD | CLONE_NEWNET | CLONE_NEWUTS;
 
             //pid_t is a signed integer that represent process id in linux and macos
             //clone() returns a real pid for the child process but due to CLONE_NEWPID flag child process only sees it self.
