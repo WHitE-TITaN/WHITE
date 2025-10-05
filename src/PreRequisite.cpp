@@ -10,7 +10,12 @@ int main() {
         perror("system");
         return 0;
     }
-
+    int instalBoot = system("sudo apt-get install debootstrap");
+    if (rc == -1) {
+        perror("system");
+        return 0;
+    }
+    
     // rc contains shell exit status; WEXITSTATUS(rc) gives the command exit code on success
     std::cout << "command exit status: " << rc << std::endl;
     std::cout << "successful\n";
