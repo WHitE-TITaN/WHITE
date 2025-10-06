@@ -1,23 +1,48 @@
 #include <cstdlib>
 #include <iostream>
+#include <thread>
 
-int main() {
-    std::cout << "PreRequisite Check/Install\n";
-    //installing module.
+//function to install bpftrace to list out all 
+//the syscalls that have been main.
+void installbpfTrace(){
     int rc = system("sudo apt update && sudo apt install -y bpftrace");
     //if command fails to install terminate the program
     if (rc == -1) {
         perror("system");
-        return 0;
+        exit(-1);
     }
-    int instalBoot = system("sudo apt-get install debootstrap");
-    if (rc == -1) {
-        perror("system");
-        return 0;
-    }
-    
-    // rc contains shell exit status; WEXITSTATUS(rc) gives the command exit code on success
     std::cout << "command exit status: " << rc << std::endl;
+
+}
+
+//function to install boot directory builder
+// for container.
+void installBootStrap(){
+    int installBoot = system("sudo apt-get install debootstrap");
+    if (installBoot == -1) {
+        perror("system");
+        exit(-1);
+    }
+
+    std::cout << "command exit status: " << installBoot << std::endl;
+}
+
+
+
+//main starting point
+int main() {
+    std::cout << "PreRequisite Check/Install\n";
+    //installing module.
+    
+    //sepratily installing modules.
+    std::thread install1(installbpfTrace);
+    std::thread install2(installBootStrap);    
+    
+    //waiting for the installation / thread to be completed.
+    install1.join();
+    install2.join();
+
+    // rc contains shell exit status; WEXITSTATUS(rc) gives the command exit code on success
     std::cout << "successful\n";
     return 1;
 }
