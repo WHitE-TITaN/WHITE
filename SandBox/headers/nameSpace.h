@@ -12,18 +12,19 @@ class sandBox{
         //to execute program in sandBox 
         static int runItBoxed(void* args){
             //getpid() will featch the process id that is being executed.
-            std::cout<<"pid - > "<<getpid();
+            std::cout<<"\npid - > "<<getpid();
             std::cout.flush(); //send print buffer to the terminal immidatly as execel will replace the
             //current execution flow.
 
             //Remounting the fileSystem For Process.
-            std::cout<<"remount the root filesystem (/) as a private mount";
+            std::cout<<"\nremount the root filesystem (/) as a private mount";
             if(mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) == -1){
                 //MS_REC | MS_PRIVATE means recursively remount / and all its submounts as private, so mount events won’t propagate to other namespaces.
                 perror("mount");
                 return -1;
             }
 
+            
             //changes the root directory of the process to "mountMask/root"
             if(chroot("mountMask/root") == -1){
                 //For chroot to work, the directory must exist and be a valid root environment
@@ -37,10 +38,10 @@ class sandBox{
                 perror("chdir");
                 return -1;
             }
-
-            //Mounts the proc filesystem inside the new root at /proc
-            if(mount("proc", "/proc", "proc", 0, NULL) == -1){
-                perror("mount");
+            
+             //Mounts the proc filesystem inside the new root at /proc
+            if(mount("proc", "/proc", "proc", 0, NULL) != 0){
+                perror("mount /proc");
                 return -1;
             }
 
@@ -57,7 +58,7 @@ class sandBox{
         }
 
 
-        
+
         //to create SandBox
         int createNameSpace(const char* path){
             //allocating stack.
@@ -72,7 +73,7 @@ class sandBox{
             //pid_t is a signed integer that represent process id in linux and macos
             //clone() returns a real pid for the child process but due to CLONE_NEWPID flag child process only sees it self.
             pid_t child = clone(runItBoxed, (char*) child_stack + STACK_SIZE, flag, (void*)path);
-            std::cout<<"child pid -> "<<child;
+            std::cout<<"\nchild pid -> "<<child;
 
             if(child == -1){
                 perror("clone");
@@ -82,19 +83,32 @@ class sandBox{
             //attach the logger to log all the activity the child do -> bpftrace
             //track the hole system.
             //track specific PID
-            std::string trackCMD =  
+
+            pid_t tracer = fork();
+            if(tracer == -1){
+                std::cerr<<"fail to start bptrace";
+                perror("fork");
+                throw std::runtime_error("Launch Fail");
+            }
+            else if(tracer == 0){
+                std::cerr<<"\nsub process id - "<<tracer;
+
+                std::string trackCMD =  
                 "sudo bpftrace -e \"tracepoint:syscalls:sys_enter_openat /pid == " + std::to_string(child) + "/ { "
                 "printf(\\\"%s opened %s\\n\\\", comm, str(args->filename)); }\"";
-            //execute the track command on new bash
-            int tacker = execl("/bin/bash", "/bin/bash", "-c",
-                trackCMD.c_str(),
-                NULL);
+            
+                //execute the track command on new bash
+                int tacker = execl("/bin/bash", "/bin/bash", "-c",
+                    trackCMD.c_str(),
+                    NULL);
 
-            perror("execl");
+                perror("execl");
 
-            //to wait until the executioon of child is finished
-            waitpid(child, NULL, 0);
-            return 1;
+                //to wait until the executioon of child is finished
+                waitpid(child, NULL, 0);
+                return 1;
+            }
+            return 0;            
         }
 
     private:
