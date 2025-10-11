@@ -132,8 +132,11 @@ int main(){
   installPreRequisite();
   std::cout.flush();
 
-  //Boot Check
-  fs::path bootDirectory = fs::path(getPath())/"mountMask";
+  //Boot Check and creation minimal boot.
+  std::string directory = getPath()+"/mountMask";
+  fs::path bootDirectory = fs::path(directory);
+
+  std::cerr<<"using boot from ->"<<bootDirectory;
   try{
     setupDirectoryAndDebootstrap(bootDirectory);
   }
@@ -145,7 +148,15 @@ int main(){
 
   sandBox process;
   std::string path = "/bin/bash";
-  process.createNameSpace(path.c_str());
+
+  //storing paths
+  mountDirectory newDirectories;
+  newDirectories.minimalMount = directory.c_str();
+  newDirectories.programToRun = path.c_str();
+
+
+  //creating isolated process
+  process.createNameSpace(&newDirectories);
   return 0;
 }
 
