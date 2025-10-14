@@ -2,7 +2,12 @@
 #include <string>
 #include "os.h"
 #include <limits.h>
+
+//main isoloation program
 #include "nameSpace.h"
+
+//for installation of dependency in fake boot.
+#include "launchDependency.h"
 
 //for system calls
 #include <cstdlib>
@@ -11,6 +16,8 @@
 
 //to sorten the std::filesystem -> fs
 namespace fs = std::filesystem;
+
+
 
 
 std::string getPath(){
@@ -27,6 +34,7 @@ std::string getPath(){
     std::string fullPath(buffer);
     return fullPath.substr(0, fullPath.find_last_of('/'));
 }
+
 
 
 
@@ -137,14 +145,45 @@ int main(){
   fs::path bootDirectory = fs::path(directory);
 
   std::cerr<<"using boot from ->"<<bootDirectory;
+  
+
+  //setup main fake Directory
   try{
     setupDirectoryAndDebootstrap(bootDirectory);
+    
+    //installing GNOME
+    launchDepenency install;
+    install.installGNOME(bootDirectory);
+
   }
+
   //if fail to build exit program.
   catch(std::exception& e){
     std::cerr<<"\nError ! reffer : "<<e.what();
-    exit(-1);
+    exit(1);
   }
+
+
+
+  try{
+    // Create the target directory inside the fakeroot for the X11 socket
+    fs::create_directories(bootDirectory / "tmp" / ".X11-unix");
+
+    // mount the host's X11 socket into the sandbox
+    std::string mount_x11_cmd = "sudo mount --bind /tmp/.X11-unix " + (bootDirectory / "tmp" / ".X11-unix").string();
+
+    if (system(mount_x11_cmd.c_str()) != 0) {
+      std::cerr << "\nFailed to mount X11 socket!" << std::endl;
+      exit(1);
+    }
+  }
+  catch(std::exception& e){
+    std::cerr<<"\nError ! reffer : "<<e.what();
+    exit(1);
+  }
+
+
+  
 
   sandBox process;
   std::string path = "/bin/bash";

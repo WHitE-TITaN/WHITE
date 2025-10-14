@@ -63,11 +63,47 @@ class sandBox{
                 return -1;
             }
 
+
+            // sysfs mount point before mounting
+            mkdir("/sys", 0555);
+
+            // Mounts the sysfs filesystem inside the new root at /sys
+            if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0) {
+                perror("mount /sys");
+                return 1; // Use 1 for consistency
+            }
+
+
+            // Get DISPLAY variable from the host environment
+            const char* display_var = getenv("DISPLAY");
+            if (display_var == NULL) {
+                std::cerr << "Error: DISPLAY environment variable not set." << std::endl;
+                return 1;
+            }
+            std::string display_env = "DISPLAY=" + std::string(display_var);
+
+            // Create the environment array for execle()
+            char* const envp[] = { &display_env[0], NULL };
+
+            // The program we want the new terminal to run
+            const char* programToRun = newMask->programToRun;
+
+            // execle() to launch gnome-terminal, which then the Prgram.
+            execle("/usr/bin/gnome-terminal", // Program to execute
+                "gnome-terminal",         // Arg 0: Program name
+                "--",                     // Arg 1: Tells gnome-terminal the rest is a command
+                programToRun,             // Arg 2: The command for the new terminal
+                NULL,                     // End of arguments
+                envp);                    // The environment variables
+
+            // This part is only reached if execle fails
+            perror("execle gnome-terminal");
+
             //execl is used for executing a program
             //and return -1 if program is fail to run
             //perror() tells the error why the program failed.
-            int returns = execl(newMask->programToRun, newMask->programToRun, NULL);
-            perror("execl");
+            // int returns = execl(newMask->programToRun, newMask->programToRun, NULL);
+            // perror("execl");
 
             return 1;
         }
