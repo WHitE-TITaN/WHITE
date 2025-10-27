@@ -9,7 +9,7 @@ void installbpfTrace(){
     //if command fails to install terminate the program
     if (WEXITSTATUS(rc) != 0) {
         perror("system");
-        exit(-1);
+        exit(1);
     }
     std::cout << "command exit status: " << rc << std::endl;
 
@@ -21,13 +21,11 @@ void installBootStrap(){
     int installBoot = system("sudo apt-get install debootstrap");
     if (WEXITSTATUS(installBoot) != 0) {
         perror("system");
-        exit(-1);
+        exit(1);
     }
 
     std::cout << "command exit status: " << installBoot << std::endl;
 }
-
-
 
 //main starting point
 int main() {
@@ -35,12 +33,9 @@ int main() {
     //installing module.
     
     //sepratily installing modules.
-    std::thread install1(installbpfTrace);
-    install1.join();
+    installbpfTrace();
+    installBootStrap();
 
-    std::thread install2(installBootStrap);        
-    //waiting for the installation / thread to be completed.
-    install2.join();
 
     // rc contains shell exit status; WEXITSTATUS(rc) gives the command exit code on success
     std::cout << "successful\n";
