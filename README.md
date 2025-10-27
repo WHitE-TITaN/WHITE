@@ -33,6 +33,6 @@ cd debug
 
 #Linux->
 make
-./WHITE
+sudo ./WHITE
 ```
 

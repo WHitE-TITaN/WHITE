@@ -5,9 +5,9 @@
 //function to install bpftrace to list out all 
 //the syscalls that have been main.
 void installbpfTrace(){
-    int rc = system("sudo apt update && sudo apt install -y bpftrace");
+    int rc = system("sudo apt install -y bpftrace");
     //if command fails to install terminate the program
-    if (rc == -1) {
+    if (WEXITSTATUS(rc) != 0) {
         perror("system");
         exit(-1);
     }
@@ -19,7 +19,7 @@ void installbpfTrace(){
 // for container.
 void installBootStrap(){
     int installBoot = system("sudo apt-get install debootstrap");
-    if (installBoot == -1) {
+    if (WEXITSTATUS(installBoot) != 0) {
         perror("system");
         exit(-1);
     }
@@ -36,13 +36,13 @@ int main() {
     
     //sepratily installing modules.
     std::thread install1(installbpfTrace);
-    std::thread install2(installBootStrap);    
-    
-    //waiting for the installation / thread to be completed.
     install1.join();
+
+    std::thread install2(installBootStrap);        
+    //waiting for the installation / thread to be completed.
     install2.join();
 
     // rc contains shell exit status; WEXITSTATUS(rc) gives the command exit code on success
     std::cout << "successful\n";
-    return 1;
+    return 0;
 }
