@@ -89,7 +89,7 @@ class sandBox{
             const char* programToRun = newMask->programToRun;
 
             // execle() to launch gnome-terminal, which then the Prgram.
-            execle("/usr/bin/gnome-terminal", // Program to execute
+            execlp("/usr/bin/gnome-terminal", // Program to execute
                 "gnome-terminal",         // Arg 0: Program name
                 "--",                     // Arg 1: Tells gnome-terminal the rest is a command
                 programToRun,             // Arg 2: The command for the new terminal
